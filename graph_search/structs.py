@@ -3,6 +3,12 @@ from typing import *
 
 
 @dataclasses.dataclass
+class GLoVe:
+    word: str
+    vec: List[float]
+
+
+@dataclasses.dataclass
 class Edge:
     to_idx: int
     dist: float

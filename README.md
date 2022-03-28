@@ -15,7 +15,8 @@ taking into account any context. This means we'll have the same vector for `pen`
 pen.
 
 GLoVe is one source for such vectors. And there precomputed vectors
-(available for download](https://nlp.stanford.edu/projects/glove/). Here we will use the "400K vocab (6B)" dataset.
+[available for download](https://nlp.stanford.edu/projects/glove/). Here we will use the "400K vocab (6B)" 
+50-dimensional dataset.
 
 ### Brainstorming
 

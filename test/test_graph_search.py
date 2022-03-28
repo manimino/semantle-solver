@@ -1,4 +1,4 @@
-from graph_search.node import Node, Edge
+from graph_search.structs import Node, Edge
 
 from scipy.spatial.distance import euclidean
 

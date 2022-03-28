@@ -1,9 +1,9 @@
 import graphviz
 from typing import *
-from graph_search.node import Node
+from graph_search.structs import Node
 
 
-def show_nodes(nodes: List[Node]):
+def show_graph(nodes: List[Node]):
     g = graphviz.Graph('G', filename='process.gv', engine='sfdp', format='png')
     g.edge('run', 'intr')
     g.edge('intr', 'runbl')
