@@ -78,6 +78,10 @@ T-SNE can go up to 3D, but that fared no better on the strawberry-banana-envelop
 
 It can't go higher than 3D because quadtree / octree is part of the implementation.
 
-### What about like... 5D
+### What about like... 5D? 
 
-Sure, let's do the PCA thing. 
+OK, did a PCA and reduced the dims down. Gradient search starts working really well at 10 and below.
+
+Elbow in explained variance is at 10.
+
+Intuitively, the strawberry-peach-envelope test starts passing at 7 dimensions, and gets better as you add more.
