@@ -57,15 +57,16 @@ def score_to_dist(score: float) -> float:
     from a polynomial fit; see training/dim_reduce.py for details.
     """
     sim_score = score / 100
-    coef = [-0.93024736,  0.28175783, -0.73464682,  1.12342693]  # 100 dims
+    coef = [-0.93024736,  0.28175783, -0.73464682,  1.12342693]  # 100 dims, 1M words
     return coef[0]*sim_score**3 + coef[1]*sim_score**2 + coef[2]*sim_score + coef[3]
 
 
 def point_to_word(point: np.array, idx: AnnoyIndex, used_words: Set[str], n=10):
     """
-
+    Given a point in space, look up the words closest to this point.
+    Find the best match we haven't used yet.
     """
     
 
     # if we can't find a new word in the top n (unusual!), retry with the top n*10
-    return point_to_word(point, )
+    return point_to_word(point, idx, used_words, n*10)
