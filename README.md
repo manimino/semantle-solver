@@ -2,26 +2,44 @@
 
 [Semantle](https://semantle.novalis.org/) is a word game about finding a secret word. After each guess, the player gets a score based on how close their guess is to the secret word. 
 
-The secret word could be anything, so the game is quite difficult. Let's see if a computer can do it!
+This project poses Semantle as a high-dimensional spatial search problem, and solves it.
 
-## Demo / Running / Results
+The solver roughly matches human performance on Semantle puzzles with common words. And it generalizes to puzzles that humans would not be able to solve.
 
-[Here is the solver's output on an actual Semantle game.]()
+[Here is the solver's output on an actual Semantle game.](docs/semantle-button.png)
 
-See the [demo in a webpage here.](www.manimino.com/semantle-solver)
+See a [demo here.](www.manimino.com/semantle-solver)
 
-To run the code yourself, clone the repo, do `docker build -t semantle-solver .` and `docker run semantle-solver`. The build will download a 3.4GB file of word vectors.
+### Computational challenges
 
-## How the solver works
+Usually in a search space, you know **direction** but not **distance**, e.g. with gradient descent.
+But in Semantle, each guess gives you only distance. You have to figure out direction.
 
-It involves dimensionality reduction, vector arithmetic, and locality-sensitive hashing. [Long explanation here.](algorithm.md)
+Furthermore, it's discrete. You must guess a word, not a point in space. So you can't step a little in each direction to find your gradient.
 
-## These are not how the solver works
+Semantle uses a corpus of 3 million words. Exhaustive searches and low-dimensional representations will not work.
 
-### Cheat method 1
+Last, the score isn't Euclidean. Semantle scores reflect cosine distance in a 300-dimensional space. That's a pretty cursed signal!
 
-If you look at the JavaScript source code on the Semantle website, you will find a list of words, one for each day. You could look up the word for today and solve it in one guess. 
+### Solver description
 
-### Cheat method 2
+To generate a guess, the solver compares pairs of previous guesses. If one guess is closer than the other, we know the solution is in that (general) direction. For example, if the guess 'ball' is close and 'moon' is much closer, 'planet' is a good next guess! 
 
-Pick a word, let's say `rock`. Precompute the cosine distance from `rock` to every other word in the Semantle dataset. Open Semantle, guess `rock`, get the score. Then look in your distance table to find a word with exactly that score's distance from `rock`. Probably there is only one such word. You win in two (or very few) guesses!
+The word-vector math doesn't produce 'planet' directly; it just gives a point in the search space. To convert that point to a word, the solver uses [annoy](https://github.com/spotify/annoy), an approximate nearest-neighbor index based on locality-sensitive hashing. 
+
+It's easy to get lost in high-dimensional spaces, so the solver uses dimensionality reduction as a preprocessing step. Cosine similarities in the original space are mapped to Euclidean distances in the reduced space via [curve fitting](). To perform the reduction, PCA and [UMAP](https://umap-learn.readthedocs.io/en/latest/) are both viable; the solver currently uses PCA.
+
+### Implementation / Progress
+
+
+
+### Range query
+
+Ahh, yes. There's also the cheaty quick way to win Semantle.
+
+1. Guess the word 'cheat'
+1. Run `python cheat.py [score]` where `[score]` is the Semantle score for 'cheat'.
+1. You get a list of words back.
+1. Type one of those in and win.
+
+If you precalculate the distance from 'cheat' to every Semantle word and make a lookup table, you can run a range query on that. It will usually win on move 2.
