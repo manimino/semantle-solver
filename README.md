@@ -1,45 +1,55 @@
 # Semantle Solver
 
-[Semantle](https://semantle.novalis.org/) is a word game about finding a secret word. After each guess, the player gets a score based on how close their guess is to the secret word. 
+Solves [Semantle](https://semantle.novalis.org/).
 
-This project poses Semantle as a high-dimensional spatial search problem, and solves it.
+This solver has the same primary constraint a human player does: it only has information about the words it has guessed so far. So it cannot use [the triangulation method](https://www.github.com/manimino/semantle-crab). 
 
-The solver roughly matches human performance on Semantle puzzles with common words. And it generalizes to puzzles that humans would not be able to solve.
+It usually wins in under 100 guesses, roughly human-level performance. See an [example game](docs/game.md).
 
-[Here is the solver's output on an actual Semantle game.](docs/semantle-button.png)
+It also generalizes to other vector spaces (e.g. GLoVe embeddings).
 
-See a [demo here.](www.manimino.com/semantle-solver)
+This is currently a proof-of-concept, code is in `notebooks/`.
 
-### Computational challenges
+## Algorithm (high-level)
 
-Usually in a search space, you know **direction** but not **distance**, e.g. with gradient descent.
-But in Semantle, each guess gives you only distance. You have to figure out direction.
+### Intuition
 
-Furthermore, it's discrete. You must guess a word, not a point in space. So you can't step a little in each direction to find your gradient.
+Here's a 1-dimensional Semantle problem. 
 
-Semantle uses a corpus of 3 million words. Exhaustive searches and low-dimensional representations will not work.
+Imagine if we had three words: "**B**all", "**M**oon", and "**P**lanet", and they were all on a number line like so:
 
-Last, the score isn't Euclidean. Semantle scores reflect cosine distance in a 300-dimensional space. That's a pretty cursed signal!
+```
+B           M     P
++--+--+--+--+--+--+
+0  1  2  3  4  5  6
+```
+Ball is at 0, Moon is at 4, and Planet - the solution - is at 6.
 
-### Solver description
+Initially we guess Ball. Semantle responds "6", because Planet is 6 units away.
 
-To generate a guess, the solver compares pairs of previous guesses. If one guess is closer than the other, we know the solution is in that (general) direction. For example, if the guess 'ball' is close and 'moon' is much closer, 'planet' is a good next guess! 
+Next we guess Moon. Semantle responds "2", because Moon is 2 units away from Planet. 
 
-The word-vector math doesn't produce 'planet' directly; it just gives a point in the search space. To convert that point to a word, the solver uses [annoy](https://github.com/spotify/annoy), an approximate nearest-neighbor index based on locality-sensitive hashing. 
+We now have the information that leads us to the solution:
+- **Magnitude:** We know Moon is exactly 2 units away from Planet. 
+- **Direction:** When we travel 4 units from Ball to Moon, we get closer to the secret word by `(6-2) = 4` units. So we should keep going that way.
+- **Starting point:** Moon.
 
-It's easy to get lost in high-dimensional spaces, so the solver uses dimensionality reduction as a preprocessing step. Cosine similarities in the original space are mapped to Euclidean distances in the reduced space via [curve fitting](). To perform the reduction, PCA and [UMAP](https://umap-learn.readthedocs.io/en/latest/) are both viable; the solver currently uses PCA.
+```
+B           M --> P
++--+--+--+--+--+--+
+0  1  2  3  4  5  6
+```
 
-### Implementation / Progress
+With a starting point at Moon, a magnitude of 2, and a direction (positive on the number line), we can travel straight to Planet. Our next guess is the word at position 6, which is the solution.
 
+This idea works in higher-dimensional spaces, albeit with some extra steps. It is a distant cousin of gradient descent.
 
+### Setup steps:
+1. Reduce dimensionality using PCA.
+1. Build an LSH index using [annoy](https://github.com/spotify/annoy). This will give us the word closest to any point in space.
+1. Guess two random words.
 
-### Range query
-
-Ahh, yes. There's also the cheaty quick way to win Semantle.
-
-1. Guess the word 'cheat'
-1. Run `python cheat.py [score]` where `[score]` is the Semantle score for 'cheat'.
-1. You get a list of words back.
-1. Type one of those in and win.
-
-If you precalculate the distance from 'cheat' to every Semantle word and make a lookup table, you can run a range query on that. It will usually win on move 2.
+### Iteration steps:
+1. Compare each pair of previously-guessed words. 
+1. If the vector between them points towards the target, continue that vector towards the target.
+1. Look up the word at that point in the LSH index. Guess the word.

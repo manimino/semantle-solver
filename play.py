@@ -1,12 +1,10 @@
 import argparse
 
-from solver.game import play_semantle
-
-
+from solver.game import run_solver
 
 def main():
     args = argparse()
-    play_semantle(args.word)
+    run_solver(args.word)
 
 if __name__ == '__main__':
     pass

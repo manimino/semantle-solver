@@ -1,3 +1,6 @@
+from typing import *
+
+import dataclasses
 
 class SemantleGame():
     def __init__(self, w_vecs):
