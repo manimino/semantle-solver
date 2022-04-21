@@ -50,5 +50,20 @@ This idea works in higher-dimensional spaces, albeit with some extra steps. It i
 
 ### Iteration steps:
 1. Compare each pair of previously-guessed words. 
-1. If the vector between them points towards the target, continue that vector towards the target.
-1. Look up the word at that point in the LSH index. Guess the word.
+1. If the vector defined by them is going mostly-towards the target, determine the point along that vector that is nearest to the target.
+1. Look up the word at that point using the LSH index. Guess the word.
+
+
+### oh hey
+
+my vector math is way far from optimal
+
+if you have a point A and a point B, and each of their distances from a point C, you have the whole triangle
+
+just project C onto AB to find the closest point on AB to C
+
+Then from there you could either guess "literally that point", or better, guess along a vector orthogonal to that point that's dist-to-target-from-there. You'd wanna check it against the convex hull, make sure it's not outside maybe.
+
+Neat thing is that the 1-d line and the 2-d triangle are simplices, and you can keep doing that all the way up as you get more points. "project a point from 4d onto this 3-d tetrahedron", you get the drill. 
+
+going to bed think about this when wake up
