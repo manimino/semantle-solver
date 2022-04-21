@@ -25,14 +25,13 @@ B           M     P
 ```
 Ball is at 0, Moon is at 4, and Planet - the solution - is at 6.
 
-Initially we guess Ball. Semantle responds "6", because Planet is 6 units away.
+Initially we guess Ball. Semantle tells us the distance to the solution, 6 units.
 
-Next we guess Moon. Semantle responds "2", because Moon is 2 units away from Planet. 
+Next we guess Moon. Semantle tells us the solution is 2 units away. 
 
 We now have the information that leads us to the solution:
-- **Magnitude:** We know Moon is exactly 2 units away from Planet. 
-- **Direction:** When we travel 4 units from Ball to Moon, we get closer to the secret word by `(6-2) = 4` units. So we should keep going that way.
-- **Starting point:** Moon.
+- **Magnitude:** We know Moon is exactly 2 units away from the solution. 
+- **Direction:** When we travel 4 units from Ball to Moon, we get closer to the solution by `(6-2) = 4` units. So we should keep going that way (+ on the number line).
 
 ```
 B           M --> P
