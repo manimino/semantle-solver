@@ -1,12 +1,12 @@
 # Semantle Solver
 
-Solves [Semantle](https://semantle.novalis.org/).
+Implements a vector search that can solve [Semantle](https://semantle.novalis.org/) and related mathematical problems.
 
 This solver has the same primary constraint a human player does: it only has information about the words it has guessed so far. So it cannot use [the triangulation method](https://www.github.com/manimino/semantle-crab). 
 
-It usually wins in under 100 guesses, roughly human-level performance. See an [example game](docs/game.md).
+However, it is also able to use a point in space as a guess. The word nearest to the guessed point is considered to be the word that is guessed.
 
-It also generalizes to other vector spaces (e.g. GLoVe embeddings).
+It wins in ~100 guesses, roughly human-level performance. See an [example game](docs/game.md).
 
 This is currently a proof-of-concept, code is in `notebooks/`.
 
@@ -31,7 +31,7 @@ Next we guess Moon. Semantle tells us the solution is 2 units away.
 
 We now have the information that leads us to the solution:
 - **Magnitude:** We know Moon is exactly 2 units away from the solution. 
-- **Direction:** When we travel 4 units from Ball to Moon, we get closer to the solution by `(6-2) = 4` units. So we should keep going that way (+ on the number line).
+- **Direction:** When we traveled 4 units from Ball to Moon, we get closer to the solution by `(6-2) = 4` units. So we should keep going that way (+ on the number line).
 
 ```
 B           M --> P
@@ -41,7 +41,9 @@ B           M --> P
 
 With a starting point at Moon, a magnitude of 2, and a direction (positive on the number line), we can travel straight to Planet. Our next guess is the word at position 6, which is the solution.
 
-This idea works in higher-dimensional spaces, albeit with some extra steps. It is a distant cousin of gradient descent.
+Each new point adds significant information about where the target is.
+
+## Implementation
 
 ### Setup steps:
 1. Reduce dimensionality using PCA.
@@ -50,20 +52,12 @@ This idea works in higher-dimensional spaces, albeit with some extra steps. It i
 
 ### Iteration steps:
 1. Compare each pair of previously-guessed words. 
-1. If the vector defined by them is going mostly-towards the target, determine the point along that vector that is nearest to the target.
+1. Determine the point along that vector that is nearest to the target (projection)
+1. Move orthogonally (in a randomly chosen dimension) from that point to a new guess-point.
 1. Look up the word at that point using the LSH index. Guess the word.
 
+## Future work
 
-### oh hey
+Right now we only work with triangles, which are built using two guessed points plus their distances to the target. 
 
-my vector math is way far from optimal
-
-if you have a point A and a point B, and each of their distances from a point C, you have the whole triangle
-
-just project C onto AB to find the closest point on AB to C
-
-Then from there you could either guess "literally that point", or better, guess along a vector orthogonal to that point that's dist-to-target-from-there. You'd wanna check it against the convex hull, make sure it's not outside maybe.
-
-Neat thing is that the 1-d line and the 2-d triangle are simplices, and you can keep doing that all the way up as you get more points. "project a point from 4d onto this 3-d tetrahedron", you get the drill. 
-
-going to bed think about this when wake up
+Comparing larger numbers of points could improve performance. For example, in 3-D, we could have a tetrahedron and project the target onto that plane. And so on to larger simplices. 
